@@ -76,11 +76,11 @@ object Npm extends AutoPlugin {
       // and (test in Test) were not using their latest defined / overriden values
       val log = streams.value.log
       if(runCompile== null) {
-        runNpm(npmExec.value,
+        runCompile = once(() => runNpm(npmExec.value,
           npmCompileCommands.key.label,
           npmCompileCommands.value,
           npmWorkingDir.value,
-          log)
+          log))
       }
       runCompile()
       (compile in Compile).value
