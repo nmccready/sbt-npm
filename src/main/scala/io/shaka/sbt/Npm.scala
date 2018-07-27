@@ -80,7 +80,7 @@ object Npm extends AutoPlugin {
           npmCompileCommands.key.label,
           npmCompileCommands.value,
           npmWorkingDir.value,
-          streams.value.log)
+          log)
         (compile in Compile).value
       }
       runCompile()
