@@ -38,6 +38,10 @@ object Npm extends AutoPlugin{
 
   def runNpm(exec: String, commands: String, workingDir: String, logger: Logger): Unit = runNpm(exec, commands.split(" "), workingDir, logger)
 
+  def runCompile(): Unit = {
+    println(s"COMPILE Running '${npmExec.value}' ${npmCompileCommands.value}")
+    runNpm(npmExec.value, npmCompileCommands.value, npmWorkingDir.value, streams.value.log)
+  }
 
   override lazy val projectSettings = Seq(
     npmExec := "npm",
@@ -48,8 +52,7 @@ object Npm extends AutoPlugin{
 //    npmPackageCommands :="",
     npm := runNpm(npmExec.value, spaceDelimited("<arg>").parsed, npmWorkingDir.value, streams.value.log) ,
     (compile in Compile) := {
-      println(s"COMPILE Running '${npmExec.value}' ${npmCompileCommands.value}")
-      runNpm(npmExec.value, npmCompileCommands.value, npmWorkingDir.value, streams.value.log)
+      runCompile()
       (compile in Compile).value
     },
     (test in Test) := {
