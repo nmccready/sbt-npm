@@ -6,8 +6,11 @@ import sbt.complete.DefaultParsers._
 import sbt.plugins.JvmPlugin
 import scala.sys.process.Process
 import scala.util.Properties.envOrElse
+import java.util.{Timer, TimerTask}
 
 object Npm extends AutoPlugin {
+
+  val timer = new Timer
 
   override def trigger = allRequirements
 
@@ -46,9 +49,16 @@ object Npm extends AutoPlugin {
     runNpm(exec, "", commands, workingDir, logger)
   }
 
-  def once[T](fn: () => T): () => T = {
+  def delay(f: () => Unit, n: Long): Unit = timer.schedule(new TimerTask() { def run = f() }, n)
+
+  /*
+    Once wrapper from keeping calls from being excessively triggered by test to compile or vice versa
+   */
+  def once[T](fn: () => T, within: Long = 1000): () => T = {
     var hasRun = false
     var result: Any = null
+
+    delay(() => hasRun = false, within)
 
     val retFn = () => {
       if (!hasRun) {
