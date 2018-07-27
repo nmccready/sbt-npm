@@ -49,7 +49,7 @@ object Npm extends AutoPlugin{
     npm := runNpm(npmExec.value, spaceDelimited("<arg>").parsed, npmWorkingDir.value, streams.value.log) ,
     (compile in Compile) := {
       runNpm(npmExec.value, npmCompileCommands.value, npmWorkingDir.value, streams.value.log)
-      compile.value
+      (compile in Compile).value
     },
     (test in Test) := {
       runNpm(npmExec.value, npmTestCommands.value, npmWorkingDir.value, streams.value.log)
