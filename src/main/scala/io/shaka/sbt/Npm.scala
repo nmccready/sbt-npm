@@ -81,7 +81,6 @@ object Npm extends AutoPlugin {
           npmCompileCommands.value,
           npmWorkingDir.value,
           log)
-        (compile in Compile).value
       }
       runCompile()
       (compile in Compile).value
