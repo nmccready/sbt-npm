@@ -5,6 +5,7 @@ import sbt._
 import sbt.complete.DefaultParsers._
 import sbt.plugins.JvmPlugin
 import scala.sys.process.Process
+import scala.util.Properties.envOrElse
 
 object Npm extends AutoPlugin{
 
@@ -38,21 +39,17 @@ object Npm extends AutoPlugin{
 
   def runNpm(exec: String, commands: String, workingDir: String, logger: Logger): Unit = runNpm(exec, commands.split(" "), workingDir, logger)
 
-  def runCompile(): Unit = {
-    println(s"COMPILE Running '${npmExec.value}' ${npmCompileCommands.value}")
-    runNpm(npmExec.value, npmCompileCommands.value, npmWorkingDir.value, streams.value.log)
-  }
-
   override lazy val projectSettings = Seq(
-    npmExec := "npm",
+    npmExec := envOrElse("NPM_PATH", "npm"), // NOTE THIS CAN BE A YARN PATH
     npmWorkingDir := ".",
-    npmCompileCommands :="",
-    npmTestCommands :="",
-    npmCleanCommands :="",
+    npmCompileCommands := envOrElse("NPM_COMPILE", ""),
+    npmTestCommands := envOrElse("NPM_TEST", ""),
+    npmCleanCommands := envOrElse("NPM_CLEAN", ""),
 //    npmPackageCommands :="",
     npm := runNpm(npmExec.value, spaceDelimited("<arg>").parsed, npmWorkingDir.value, streams.value.log) ,
     (compile in Compile) := {
-      runCompile()
+      println(s"COMPILE Running '${npmExec.value}' ${npmCompileCommands.value}")
+      runNpm(npmExec.value, npmCompileCommands.value, npmWorkingDir.value, streams.value.log)
       (compile in Compile).value
     },
     (test in Test) := {
