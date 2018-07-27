@@ -47,13 +47,15 @@ object Npm extends AutoPlugin{
     npmCleanCommands :="",
 //    npmPackageCommands :="",
     npm := runNpm(npmExec.value, spaceDelimited("<arg>").parsed, npmWorkingDir.value, streams.value.log) ,
-    compile := {
+    (compile in Compile) := {
+      println(s"COMPILE Running '${npmExec.value}' ")
       runNpm(npmExec.value, npmCompileCommands.value, npmWorkingDir.value, streams.value.log)
-      compile.value
+      (compile in Compile).value
     },
-    test := {
+    (test in Test) := {
+      println(s"TEST Running '${npmExec.value}' ")
       runNpm(npmExec.value, npmTestCommands.value, npmWorkingDir.value, streams.value.log)
-      test.value
+      (test in Test).value
     },
     clean := {
       runNpm(npmExec.value, npmCleanCommands.value, npmWorkingDir.value, streams.value.log)
