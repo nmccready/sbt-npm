@@ -58,9 +58,9 @@ object Npm extends AutoPlugin {
     var hasRun = false
     var result: Any = null
 
-    delay(() => hasRun = false, within)
-
     val retFn = () => {
+      delay(() => hasRun = false, within)
+
       if (!hasRun) {
         hasRun = true
         result = fn.apply()
