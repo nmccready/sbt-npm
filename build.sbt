@@ -1,6 +1,8 @@
 import scala.util.Try
 sbtPlugin := true
 
+// seq(bintrayResolverSettings:_*)
+
 name := "sbt-npm"
 
 organization := "io.shaka"
