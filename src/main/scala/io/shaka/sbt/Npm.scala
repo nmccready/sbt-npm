@@ -60,7 +60,9 @@ object Npm extends AutoPlugin {
     retFn
   }
 
+  // semi hack in making the compile and run commands run only once
   var runTest: () => Unit = null
+  var runCompile: () => Unit = null
 
   override lazy val projectSettings = Seq(
     npmExec := envOrElse("NPM_PATH", "npm"), // NOTE THIS CAN BE A YARN PATH
@@ -72,11 +74,16 @@ object Npm extends AutoPlugin {
     (compile in Compile) := {
       // note one of the main reasons for dotEnv is that (compile in Compile)
       // and (test in Test) were not using their latest defined / overriden values
-      runNpm(npmExec.value,
-        npmCompileCommands.key.label,
-        npmCompileCommands.value,
-        npmWorkingDir.value,
-        streams.value.log)
+      val log = streams.value.log
+      if(runCompile== null) {
+        runNpm(npmExec.value,
+          npmCompileCommands.key.label,
+          npmCompileCommands.value,
+          npmWorkingDir.value,
+          streams.value.log)
+        (compile in Compile).value
+      }
+      runCompile()
       (compile in Compile).value
     },
     (test in Test) := {
