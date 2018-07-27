@@ -4,6 +4,7 @@ import sbt.Keys._
 import sbt._
 import sbt.complete.DefaultParsers._
 import sbt.plugins.JvmPlugin
+import scala.sys.process.Process
 
 object Npm extends AutoPlugin{
 
