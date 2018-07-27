@@ -45,15 +45,16 @@ object Npm extends AutoPlugin{
     npmCompileCommands := envOrElse("NPM_COMPILE", ""),
     npmTestCommands := envOrElse("NPM_TEST", ""),
     npmCleanCommands := envOrElse("NPM_CLEAN", ""),
-//    npmPackageCommands :="",
+
     npm := runNpm(npmExec.value, spaceDelimited("<arg>").parsed, npmWorkingDir.value, streams.value.log) ,
     (compile in Compile) := {
-      println(s"COMPILE Running '${npmExec.value}' ${npmCompileCommands.value}")
+      // note one of the main reasons for dotEnv is that (compile in Compile)
+      // and (test in Test) were not using their latest defined / overriden values
       runNpm(npmExec.value, npmCompileCommands.value, npmWorkingDir.value, streams.value.log)
       (compile in Compile).value
     },
     (test in Test) := {
-      println(s"TEST Running '${npmExec.value}' ${npmTestCommands.value}")
+
       runNpm(npmExec.value, npmTestCommands.value, npmWorkingDir.value, streams.value.log)
       (test in Test).value
     },
