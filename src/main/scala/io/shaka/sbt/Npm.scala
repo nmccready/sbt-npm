@@ -41,9 +41,6 @@ object Npm extends AutoPlugin {
   def runNpm(exec: String, taskKey: String, commands: String, workingDir: String, logger: Logger): Unit =
     runNpm(exec, taskKey, commands.split(" "), workingDir, logger)
 
-  def runNpm(exec: String, commands: String, workingDir: String, logger: Logger): Unit = {
-    runNpm(exec, "", commands, workingDir, logger)
-  }
 
   def runNpm(exec: String, commands: Seq[String], workingDir: String, logger: Logger): Unit = {
     runNpm(exec, "", commands, workingDir, logger)
