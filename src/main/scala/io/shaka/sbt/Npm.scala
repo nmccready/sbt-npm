@@ -46,13 +46,28 @@ object Npm extends AutoPlugin {
     runNpm(exec, "", commands, workingDir, logger)
   }
 
+  def once[T](fn: () => T): () => T = {
+    var hasRun = false
+    var result: Any = null
+
+    val retFn = () => {
+      if (!hasRun) {
+        hasRun = true
+        result = fn.apply()
+      }
+      result.asInstanceOf[T]
+    }
+    retFn
+  }
+
+  var runTest: () => Unit = null
+
   override lazy val projectSettings = Seq(
     npmExec := envOrElse("NPM_PATH", "npm"), // NOTE THIS CAN BE A YARN PATH
     npmWorkingDir := ".",
     npmCompileCommands := envOrElse("NPM_COMPILE", ""),
     npmTestCommands := envOrElse("NPM_TEST", ""),
     npmCleanCommands := envOrElse("NPM_CLEAN", ""),
-
     npm := runNpm(npmExec.value, spaceDelimited("<arg>").parsed, npmWorkingDir.value, streams.value.log),
     (compile in Compile) := {
       // note one of the main reasons for dotEnv is that (compile in Compile)
@@ -65,11 +80,15 @@ object Npm extends AutoPlugin {
       (compile in Compile).value
     },
     (test in Test) := {
-      runNpm(npmExec.value,
-        npmTestCommands.key.label,
-        npmTestCommands.value,
-        npmWorkingDir.value,
-        streams.value.log)
+      val log = streams.value.log
+      if(runTest == null) {
+        runTest = once(() => runNpm(npmExec.value,
+          npmTestCommands.key.label,
+          npmTestCommands.value,
+          npmWorkingDir.value,
+          log))
+      }
+      runTest()
       (test in Test).value
     },
     clean := {
