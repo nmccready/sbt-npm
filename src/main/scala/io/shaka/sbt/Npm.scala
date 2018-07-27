@@ -7,9 +7,10 @@ import sbt.plugins.JvmPlugin
 import scala.sys.process.Process
 import scala.util.Properties.envOrElse
 
-object Npm extends AutoPlugin{
+object Npm extends AutoPlugin {
 
   override def trigger = allRequirements
+
   override def requires: Plugins = JvmPlugin
 
   object autoImport {
@@ -21,13 +22,13 @@ object Npm extends AutoPlugin{
     val npmCompileCommands = settingKey[String]("sbt-npm npm commands to run during compile phase")
     val npmTestCommands = settingKey[String]("sbt-npm npm commands to run during test phase")
     val npmCleanCommands = settingKey[String]("sbt-npm npm commands to run during clean phase")
-//    val npmPackageCommands = settingKey[String]("sbt-npm npm commands to run during package phase")
+    //    val npmPackageCommands = settingKey[String]("sbt-npm npm commands to run during package phase")
   }
 
   import autoImport._
 
-  def runNpm(exec: String, taskKey: String, taskValue: Seq[String], workingDir: String, logger: Logger):Unit = {
-    val npmCommand = s"$exec ${taskValue.mkString(" ")}"
+  def runNpm(exec: String, taskKey: String, commands: Seq[String], workingDir: String, logger: Logger): Unit = {
+    val npmCommand = s"$exec ${commands.mkString(" ")}"
     logger.info(s"Running Task ${taskKey} command '$npmCommand' in $workingDir")
     val rc = Process(npmCommand, file(workingDir)).!
     if (rc != 0) {
@@ -40,18 +41,13 @@ object Npm extends AutoPlugin{
   def runNpm(exec: String, taskKey: String, commands: String, workingDir: String, logger: Logger): Unit =
     runNpm(exec, taskKey, commands.split(" "), workingDir, logger)
 
-  def runNpm(exec: String, commands: String, workingDir: String, logger: Logger):Unit = {
+  def runNpm(exec: String, commands: String, workingDir: String, logger: Logger): Unit = {
     runNpm(exec, "", commands, workingDir, logger)
   }
 
-  def runNpm(exec: String, commands: Seq[String], workingDir: String, logger: Logger):Unit = {
+  def runNpm(exec: String, commands: Seq[String], workingDir: String, logger: Logger): Unit = {
     runNpm(exec, "", commands, workingDir, logger)
   }
-
-  def runNpm(exec: String, task: SettingKey[String], workingDir: String, logger: Logger):Unit = {
-    runNpm(exec, task.key.label, task.value, workingDir, logger)
-  }
-
 
   override lazy val projectSettings = Seq(
     npmExec := envOrElse("NPM_PATH", "npm"), // NOTE THIS CAN BE A YARN PATH
@@ -60,20 +56,31 @@ object Npm extends AutoPlugin{
     npmTestCommands := envOrElse("NPM_TEST", ""),
     npmCleanCommands := envOrElse("NPM_CLEAN", ""),
 
-    npm := runNpm(npmExec.value, spaceDelimited("<arg>").parsed, npmWorkingDir.value, streams.value.log) ,
+    npm := runNpm(npmExec.value, spaceDelimited("<arg>").parsed, npmWorkingDir.value, streams.value.log),
     (compile in Compile) := {
       // note one of the main reasons for dotEnv is that (compile in Compile)
       // and (test in Test) were not using their latest defined / overriden values
-      runNpm(npmExec.value, npmCompileCommands, npmWorkingDir.value, streams.value.log)
+      runNpm(npmExec.value,
+        npmCompileCommands.key.label,
+        npmCompileCommands.value,
+        npmWorkingDir.value,
+        streams.value.log)
       (compile in Compile).value
     },
     (test in Test) := {
-
-      runNpm(npmExec.value, npmTestCommands, npmWorkingDir.value, streams.value.log)
+      runNpm(npmExec.value,
+        npmTestCommands.key.label,
+        npmTestCommands.value,
+        npmWorkingDir.value,
+        streams.value.log)
       (test in Test).value
     },
     clean := {
-      runNpm(npmExec.value, npmCleanCommands, npmWorkingDir.value, streams.value.log)
+      runNpm(npmExec.value,
+        npmCleanCommands.key.label,
+        npmCleanCommands.value,
+        npmWorkingDir.value,
+        streams.value.log)
       clean.value
     }
   )
