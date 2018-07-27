@@ -26,9 +26,9 @@ object Npm extends AutoPlugin{
 
   import autoImport._
 
-  def runNpm(exec: String, commands: Seq[String], workingDir: String, logger: Logger):Unit = {
-    val npmCommand = s"$exec ${commands.mkString(" ")}"
-    logger.info(s"Running '$npmCommand' in $workingDir")
+  def runNpm(exec: String, taskKey: String, taskValue: Seq[String], workingDir: String, logger: Logger):Unit = {
+    val npmCommand = s"$exec ${taskValue.mkString(" ")}"
+    logger.info(s"Running Task ${taskKey} command '$npmCommand' in $workingDir")
     val rc = Process(npmCommand, file(workingDir)).!
     if (rc != 0) {
       val errorMsg = s"$npmCommand returned non-zero return code: $rc"
@@ -37,7 +37,21 @@ object Npm extends AutoPlugin{
     }
   }
 
-  def runNpm(exec: String, commands: String, workingDir: String, logger: Logger): Unit = runNpm(exec, commands.split(" "), workingDir, logger)
+  def runNpm(exec: String, taskKey: String, commands: String, workingDir: String, logger: Logger): Unit =
+    runNpm(exec, taskKey, commands.split(" "), workingDir, logger)
+
+  def runNpm(exec: String, commands: String, workingDir: String, logger: Logger):Unit = {
+    runNpm(exec, "", commands, workingDir, logger)
+  }
+
+  def runNpm(exec: String, commands: Seq[String], workingDir: String, logger: Logger):Unit = {
+    runNpm(exec, "", commands, workingDir, logger)
+  }
+
+  def runNpm(exec: String, task: SettingKey[String], workingDir: String, logger: Logger):Unit = {
+    runNpm(exec, task.key.label, task.value, workingDir, logger)
+  }
+
 
   override lazy val projectSettings = Seq(
     npmExec := envOrElse("NPM_PATH", "npm"), // NOTE THIS CAN BE A YARN PATH
@@ -50,16 +64,16 @@ object Npm extends AutoPlugin{
     (compile in Compile) := {
       // note one of the main reasons for dotEnv is that (compile in Compile)
       // and (test in Test) were not using their latest defined / overriden values
-      runNpm(npmExec.value, npmCompileCommands.value, npmWorkingDir.value, streams.value.log)
+      runNpm(npmExec.value, npmCompileCommands, npmWorkingDir.value, streams.value.log)
       (compile in Compile).value
     },
     (test in Test) := {
 
-      runNpm(npmExec.value, npmTestCommands.value, npmWorkingDir.value, streams.value.log)
+      runNpm(npmExec.value, npmTestCommands, npmWorkingDir.value, streams.value.log)
       (test in Test).value
     },
     clean := {
-      runNpm(npmExec.value, npmCleanCommands.value, npmWorkingDir.value, streams.value.log)
+      runNpm(npmExec.value, npmCleanCommands, npmWorkingDir.value, streams.value.log)
       clean.value
     }
   )
