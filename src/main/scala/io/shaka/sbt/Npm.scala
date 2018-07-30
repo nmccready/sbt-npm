@@ -54,7 +54,7 @@ object Npm extends AutoPlugin {
   /*
     Once wrapper from keeping calls from being excessively triggered by test to compile or vice versa
    */
-  def once[T](fn: () => T, within: Long = 1000): () => T = {
+  def once[T](fn: () => T, within: Long = 2000): () => T = {
     var hasRun = false
     var result: Any = null
 
